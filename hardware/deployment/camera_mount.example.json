@@ -1,0 +1,9 @@
+{
+  "serial": "REPLACE_WITH_YOUR_D435I_SERIAL",
+  "measurement_source": "UNMEASURED_EXAMPLE_DO_NOT_USE_FOR_CONTROL",
+  "parent_body": "torso_link",
+  "coordinate_convention": "MuJoCo camera: +X right, +Y up, -Z forward; quaternion wxyz",
+  "pos": [0.05, 0.0, 0.4318],
+  "quat": [0.6533, 0.2706, -0.2706, -0.6533],
+  "note": "These are training nominal values, NOT a measurement of your robot. Replace with measured values before control."
+}

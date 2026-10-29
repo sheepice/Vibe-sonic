@@ -1,0 +1,10 @@
+# This D435i: USB serial 254643061331; RealSense SDK serial 254522074774.
+# unitree is already a member of video; no other USB devices are matched.
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTR{idVendor}=="8086", ATTR{idProduct}=="0b3a", ATTR{serial}=="254643061331", GROUP="video", MODE="0660"
+# Keep only this camera awake across process restarts and USB re-enumeration.
+# This disables runtime autosuspend, not USB3 U1/U2 link power management.
+# It is a diagnostic mitigation; it does not repair a faulty cable/connector.
+# UVC probe can re-enable power/control=auto after a USB reset. A negative
+# idle delay still prevents autosuspend; keep it on this one device only.
+ACTION=="add|change", SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTR{idVendor}=="8086", ATTR{idProduct}=="0b3a", ATTR{serial}=="254643061331", TEST=="power/autosuspend_delay_ms", ATTR{power/autosuspend_delay_ms}="-1"
+ACTION=="add|change", SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTR{idVendor}=="8086", ATTR{idProduct}=="0b3a", ATTR{serial}=="254643061331", TEST=="power/control", ATTR{power/control}="on"

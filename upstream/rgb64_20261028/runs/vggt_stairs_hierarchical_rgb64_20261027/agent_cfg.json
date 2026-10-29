@@ -1,0 +1,241 @@
+{
+  "seed": 137,
+  "num_steps_per_env": 24,
+  "max_iterations": 15000,
+  "obs_groups": {
+    "actor": [
+      "policy"
+    ],
+    "critic": [
+      "critic"
+    ]
+  },
+  "save_interval": 100,
+  "experiment_name": "vibe_online_velocity_stairs",
+  "run_name": "",
+  "logger": "tensorboard",
+  "wandb_project": "vibe",
+  "wandb_tags": [],
+  "resume": false,
+  "load_run": ".*",
+  "load_checkpoint": "model_.*.pt",
+  "clip_actions": null,
+  "upload_model": true,
+  "class_name": "OnPolicyRunner",
+  "actor": {
+    "class_name": "vibe_grail_joint.vggt_distill.model.DistilledActor",
+    "distribution_cfg": {
+      "class_name": "GaussianDistribution",
+      "init_std": 1.0,
+      "std_type": "scalar",
+      "learn_std": false
+    },
+    "adapter_obs_group": [
+      "augmentation",
+      "kv_tokens"
+    ],
+    "rank": 16,
+    "alpha": 1.0,
+    "base_checkpoint": "/mnt/workspace/wjw/GRAIL/vibe_grail_joint/vendor/mocke/pretrained/sonic/last_ported.pt",
+    "freeze_base": true,
+    "adapt_encoder": false,
+    "adapt_decoder": true,
+    "cache_tokens": true,
+    "extractor_cfg": {
+      "kv_tokens": {
+        "class_name": "vibe_grail_joint.vggt_distill.model.SpatialExtractor",
+        "token_terms": [
+          "img_tokens"
+        ],
+        "query_groups": [
+          "q_task_cmd",
+          "q_proprio",
+          "q_cls"
+        ],
+        "latent_dim": 128,
+        "attn_dim": 64,
+        "num_heads": 1,
+        "num_learned_queries": 0,
+        "layer_norm": true,
+        "patch_grid": [
+          4,
+          7
+        ],
+        "spatial_depth": 3
+      }
+    },
+    "distillation": {
+      "version": 1,
+      "variant": "hierarchical",
+      "teacher_source": "/mnt/workspace/wjw/GRAIL/imports/vggt_omega_official",
+      "teacher_checkpoint": "/mnt/workspace/wjw/GRAIL/VGGT-Omega/VGGT-Omega/vggt_omega_1b_416_reproduce.pt",
+      "teacher_sha256": "e900833330eb0e570e10543e6108d0dd704fa7c8dbc32738a645987875298896",
+      "teacher_source_revision": "48b23c8ce72c9a8fcf987f0d7f43d8e4870759f6",
+      "teacher_layers": [
+        11,
+        17,
+        23
+      ],
+      "teacher_shape": [
+        240,
+        416
+      ],
+      "teacher_batch_size": 4,
+      "patch_grid": [
+        4,
+        7
+      ],
+      "sample_interval_steps": 6,
+      "sample_worlds": 16,
+      "buffer_capacity": 512,
+      "batch_size": 16,
+      "loss_interval_minibatches": 4,
+      "spatial_coefficient": 0.3,
+      "relation_coefficient": 0.05,
+      "progress_coefficient": 0.03,
+      "warmup_updates": 200,
+      "training_scope": "stairs_original_mixture_v1",
+      "relation_edge_mode": "ascending_and_descending"
+    }
+  },
+  "critic": {
+    "hidden_dims": [
+      512,
+      256,
+      128
+    ],
+    "activation": "elu",
+    "obs_normalization": true,
+    "cnn_cfg": null,
+    "distribution_cfg": null,
+    "rnn_type": null,
+    "rnn_hidden_dim": 256,
+    "rnn_num_layers": 1,
+    "class_name": "MLPModel"
+  },
+  "algorithm": {
+    "num_learning_epochs": 3,
+    "num_mini_batches": 99,
+    "learning_rate": 0.0001,
+    "schedule": "fixed",
+    "gamma": 0.99,
+    "lam": 0.95,
+    "entropy_coef": 0.005,
+    "desired_kl": 0.01,
+    "max_grad_norm": 1.0,
+    "value_loss_coef": 1.0,
+    "use_clipped_value_loss": true,
+    "clip_param": 0.2,
+    "normalize_advantage_per_mini_batch": false,
+    "optimizer": "adam",
+    "share_cnn_encoders": false,
+    "class_name": "vibe_grail_joint.vggt_distill.algorithm.DistillationPPO",
+    "preservation_coef": 0.0,
+    "upper_preservation_coef": 0.02,
+    "upper_preservation_std_rad": 0.2,
+    "upper_waist_weight": 1.0,
+    "upper_arms_weight": 1.0,
+    "upper_preservation_samples": 128,
+    "dagger_coef": 0.8,
+    "dagger_batch_size": 256,
+    "distillation": {
+      "version": 1,
+      "variant": "hierarchical",
+      "teacher_source": "/mnt/workspace/wjw/GRAIL/imports/vggt_omega_official",
+      "teacher_checkpoint": "/mnt/workspace/wjw/GRAIL/VGGT-Omega/VGGT-Omega/vggt_omega_1b_416_reproduce.pt",
+      "teacher_sha256": "e900833330eb0e570e10543e6108d0dd704fa7c8dbc32738a645987875298896",
+      "teacher_source_revision": "48b23c8ce72c9a8fcf987f0d7f43d8e4870759f6",
+      "teacher_layers": [
+        11,
+        17,
+        23
+      ],
+      "teacher_shape": [
+        240,
+        416
+      ],
+      "teacher_batch_size": 4,
+      "patch_grid": [
+        4,
+        7
+      ],
+      "sample_interval_steps": 6,
+      "sample_worlds": 16,
+      "buffer_capacity": 512,
+      "batch_size": 16,
+      "loss_interval_minibatches": 4,
+      "spatial_coefficient": 0.3,
+      "relation_coefficient": 0.05,
+      "progress_coefficient": 0.03,
+      "warmup_updates": 200,
+      "training_scope": "stairs_original_mixture_v1",
+      "relation_edge_mode": "ascending_and_descending"
+    },
+    "action_scales": [
+      0.3506614565849304,
+      0.3506614565849304,
+      0.5475464463233948,
+      0.3506614565849304,
+      0.4385773241519928,
+      0.4385773241519928,
+      0.3506614565849304,
+      0.3506614565849304,
+      0.5475464463233948,
+      0.3506614565849304,
+      0.4385773241519928,
+      0.4385773241519928,
+      0.5475464463233948,
+      0.4385773241519928,
+      0.4385773241519928,
+      0.4385773241519928,
+      0.4385773241519928,
+      0.4385773241519928,
+      0.4385773241519928,
+      0.4385773241519928,
+      0.07450087368488312,
+      0.07450087368488312,
+      0.4385773241519928,
+      0.4385773241519928,
+      0.4385773241519928,
+      0.4385773241519928,
+      0.4385773241519928,
+      0.07450087368488312,
+      0.07450087368488312
+    ],
+    "action_joint_names": [
+      "left_hip_pitch_joint",
+      "left_hip_roll_joint",
+      "left_hip_yaw_joint",
+      "left_knee_joint",
+      "left_ankle_pitch_joint",
+      "left_ankle_roll_joint",
+      "right_hip_pitch_joint",
+      "right_hip_roll_joint",
+      "right_hip_yaw_joint",
+      "right_knee_joint",
+      "right_ankle_pitch_joint",
+      "right_ankle_roll_joint",
+      "waist_yaw_joint",
+      "waist_roll_joint",
+      "waist_pitch_joint",
+      "left_shoulder_pitch_joint",
+      "left_shoulder_roll_joint",
+      "left_shoulder_yaw_joint",
+      "left_elbow_joint",
+      "left_wrist_roll_joint",
+      "left_wrist_pitch_joint",
+      "left_wrist_yaw_joint",
+      "right_shoulder_pitch_joint",
+      "right_shoulder_roll_joint",
+      "right_shoulder_yaw_joint",
+      "right_elbow_joint",
+      "right_wrist_roll_joint",
+      "right_wrist_pitch_joint",
+      "right_wrist_yaw_joint"
+    ]
+  },
+  "torch_compile_mode": null,
+  "check_for_nan": true,
+  "amp_dtype": null,
+  "drop_query_rows": ""
+}

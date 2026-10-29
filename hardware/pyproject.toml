@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vibe-grail-joint"
+version = "0.1.0"
+description = "ViBe visual post-training on paired GRAIL stairs and existing mixed flat motions"
+requires-python = ">=3.11"
+dependencies = ["numpy", "scipy", "psutil", "pyyaml"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"vibe_grail_joint.deploy" = ["*.html"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 110
+

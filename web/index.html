@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>G1 · 楼梯实验室</title>
+<style>
+:root{color-scheme:dark;font-family:Inter,"Noto Sans CJK SC",system-ui,sans-serif;background:#111820;color:#e8eef2}*{box-sizing:border-box}body{margin:0}header{padding:22px 32px;border-bottom:1px solid #2a3541;display:flex;align-items:center;justify-content:space-between}h1{font-size:21px;font-weight:600;margin:0}header small{color:#8d9aaa;font-size:12px;letter-spacing:1px}.badge{border:1px solid #395c50;color:#8be1b6;border-radius:20px;padding:7px 13px;font-size:12px}main{max-width:1520px;margin:24px auto;padding:0 26px;display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:20px}.panel{border:1px solid #2a3541;border-radius:14px;background:#18222d;overflow:hidden}.view{position:relative;background:#0c1015;aspect-ratio:16/9}#scene{width:100%;height:100%;object-fit:contain;touch-action:none;cursor:grab}.overlay{position:absolute;top:16px;left:16px;background:#111820bf;padding:8px 12px;border-radius:7px;font-size:12px;pointer-events:none}.caption{padding:15px 18px;color:#9aabba;font-size:12px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#2a3541;border-top:1px solid #2a3541}.stat{background:#18222d;padding:19px}.stat span{display:block;font-size:11px;color:#96a5b4;margin-bottom:8px}.stat strong{font-size:23px;font-weight:500;font-variant-numeric:tabular-nums}.side{padding:20px}h2{font-size:14px;font-weight:500;margin:0 0 18px}label{display:block;color:#a9b6c2;font-size:12px;margin:15px 0 7px}select,input,button{font:inherit}select{width:100%;padding:10px;background:#111820;border:1px solid #354453;border-radius:7px;color:#e8eef2}input[type=range]{width:100%;accent-color:#73dbac}button{background:#253443;border:1px solid #415263;border-radius:8px;color:#dce5ed;padding:11px 12px;cursor:pointer;font-size:12px}button:hover{filter:brightness(1.2)}button:disabled{opacity:.4;cursor:wait}.primary{background:#8be1b6;color:#10271d;border:0;font-weight:600}.full{width:100%;margin-top:12px}.row{display:flex;gap:8px;margin-top:10px}.row button{flex:1}kbd{border:1px solid #647889;border-radius:4px;padding:1px 5px;margin-right:7px}.note{color:#8c9dad;font-size:11px;line-height:1.8}.rgbbox{margin-top:22px;border-top:1px solid #34424e;padding-top:18px}#rgb{width:100%;image-rendering:pixelated;border-radius:7px}.progress{margin-top:20px;padding:20px}.track{height:7px;background:#0d151c;border-radius:20px;margin:16px 0;overflow:hidden}#bar{height:100%;background:#8be1b6;width:0;transition:width .2s}#error{color:#ffa49c;white-space:pre-wrap}.small{font-size:12px;color:#a9b6c2}footer{padding:0 26px 24px;text-align:center;color:#667a8b;font-size:11px}@media(max-width:900px){main{grid-template-columns:1fr;padding:0 12px}header{padding:18px}.stats .stat{padding:13px}.side{display:block}}
+.drive-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:14px}.drive-grid button{padding:12px 4px;touch-action:none;user-select:none}.drive-grid #backward{grid-column:2}.drive-grid button.active{background:#36785c;border-color:#8be1b6;color:white}.drive-grid kbd{margin-right:3px}#heading{margin-bottom:0}
+
+.heat-inset{position:absolute;right:14px;top:14px;width:26%;min-width:150px;max-width:270px;background:#101820dc;border:1px solid #566875;border-radius:8px;padding:8px;pointer-events:none}.heat-inset h3{font-size:11px;font-weight:500;margin:0 0 6px;color:#e8eef2}#liveHeat{display:block;width:100%;height:auto;image-rendering:auto}.heat-legend{height:5px;margin-top:6px;border-radius:3px;background:linear-gradient(90deg,rgb(22,26,90),rgb(22,95,220),rgb(22,211,192),rgb(255,231,60),rgb(240,45,35))}.heat-labels{display:flex;justify-content:space-between;font-size:9px;color:#c6d0d8}.heat-settings summary{cursor:pointer;color:#bacbd6;font-size:12px}.heat-settings select{font-size:12px;padding:7px}#visionStatus{line-height:1.6}.heat-settings input[type=range]{min-width:0}
+.attention-panel{padding:16px 18px;border-top:1px solid #2a3541}.attention-panel h2{margin:0 0 12px}.attention-triplet{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.attention-card{background:#101820;border:1px solid #34424e;border-radius:8px;padding:9px}.attention-card h3{font-size:12px;font-weight:500;margin:0 0 8px;color:#c7d8e3}.attention-card canvas{display:block;width:100%;height:auto;border-radius:4px}.attention-card p{font-size:10px;color:#a9b6c2;line-height:1.6;margin:7px 0 0}.attention-panel .note{margin:10px 0 0}@media(max-width:600px){.attention-triplet{grid-template-columns:1fr}.heat-inset{min-width:125px;width:30%}}
+</style>
+<header><div><small>VIBE × SONIC / SIM2SIM</small><h1>G1 楼梯实验室</h1></div><span class="badge" id="connection">正在加载模型</span></header>
+<main><section><div class="panel"><div class="view"><img id="scene" alt="MuJoCo 实时物理仿真"><div class="overlay" id="mode">准备中…</div><div class="heat-inset"><h3 id="heatTitle">交叉注意力 · CLS</h3><canvas id="liveHeat" width="448" height="256" aria-label="交叉注意力与同帧策略图像"></canvas><div class="heat-legend"></div><div class="heat-labels"><span>0</span><span id="heatMax">本帧最大值</span></div><div class="heat-labels" id="heatTime">等待策略取样</div></div></div><div class="caption">拖动画面旋转视角 · 滚轮缩放 · W/S 前后移动 · Q/E 左右转 · 松开停步 · 空格暂停</div><div class="attention-panel"><h2>交叉注意力投影 · 乘 V 之前</h2><div class="attention-triplet"><div class="attention-card"><h3>task_cmd · 任务指令</h3><canvas id="queryHeat0" width="448" height="256" aria-label="task_cmd · 任务指令 注意力投影"></canvas><p id="queryInfo0">等待策略图像</p></div><div class="attention-card"><h3>proprio · 本体状态</h3><canvas id="queryHeat1" width="448" height="256" aria-label="proprio · 本体状态 注意力投影"></canvas><p id="queryInfo1">等待策略图像</p></div><div class="attention-card"><h3>CLS · 视觉摘要</h3><canvas id="queryHeat2" width="448" height="256" aria-label="CLS · 视觉摘要 注意力投影"></canvas><p id="queryInfo2">等待策略图像</p></div></div><div class="heat-legend"></div><p class="note" id="attentionLegend">色标：注意力权重 0～1，三张图使用相同范围。</p><p class="note" id="attentionTime">等待策略取样</p></div><div class="stats"><div class="stat"><span>仿真时间</span><strong id="time">0.0 s</strong></div><div class="stat"><span>X 方向位移</span><strong id="distance">0.00 m</strong></div><div class="stat"><span>实际速度</span><strong id="velocity">0.00 m/s</strong></div><div class="stat"><span>骨盆高度</span><strong id="height">0.76 m</strong></div></div></div><div class="panel progress"><h2 id="progressTitle">上楼梯 · 15 cm × 6 级</h2><div class="track"><div id="bar"></div></div><div class="small" id="progressText">从静止站姿出发，以双脚越过终点判定通过。</div><p id="error"></p></div></section>
+<aside class="panel side"><h2>场景与控制</h2><label for="terrain">测试场景</label><select id="terrain"><option value="up_down">连续上楼 + 下楼</option><option value="up" selected>上楼梯</option><option value="down">下楼梯</option><option value="flat">平地</option></select><label for="stepHeight">每级高度</label><select id="stepHeight"><option value="0.05">5 cm</option><option value="0.10">10 cm</option><option value="0.15" selected>15 cm</option><option value="0.20">20 cm</option></select><label for="stepCount">台阶数量（上下楼时每侧）</label><select id="stepCount"><option value="1">1 级</option><option value="2">2 级</option><option value="3">3 级</option><option value="4">4 级</option><option value="5">5 级</option><option value="6" selected>6 级</option><option value="7">7 级</option><option value="8">8 级</option></select><label for="speed">行走速度 <span id="speedText">0.40 m/s</span></label><input id="speed" type="range" min="0.1" max="0.7" step="0.05" value="0.40"><button class="full" id="reset" disabled>重置到所选场景</button><button class="full primary" id="auto" disabled>自动完成楼梯测试</button><div class="drive-grid" aria-label="机器人方向控制">
+<button id="left" data-key="KeyQ" disabled><kbd>Q</kbd>左转 ↶</button>
+<button id="walk" data-key="KeyW" disabled><kbd>W</kbd>前进 ↑</button>
+<button id="right" data-key="KeyE" disabled><kbd>E</kbd>右转 ↷</button>
+<button id="backward" data-key="KeyS" disabled><kbd>S</kbd>后退 ↓</button>
+</div><p class="note" id="heading">机器人朝向 0°</p><div class="row"><button id="stop" disabled>停步</button><button id="pause" disabled>暂停</button></div><p class="note">按住按键或按钮控制，可同时前进和转向。后退最高 0.25 m/s，转向目标约 26°/s。先点“重置”应用场景。自动测试会站立 2 秒再出发，到达终点后停步。暂停会冻结仿真时间。</p><div class="rgbbox"><h2>机器人头部 RGB</h2><img id="rgb" alt="策略使用的头部相机画面"><p class="note" id="visionStatus">开始行走后显示同帧交叉注意力。</p><details class="heat-settings"><summary>热力图显示设置</summary><label for="heatQuery">右上角显示</label><select id="heatQuery"><option value="0">task_cmd · 任务指令</option><option value="1">proprio · 本体状态</option><option value="2" selected>CLS · 视觉摘要</option></select><label for="heatScale">色标范围</label><select id="heatScale"><option value="absolute">固定 0～1 · 便于跨图比较</option><option value="relative">每张图按自身最大值着色</option></select><label for="heatStyle">显示</label><select id="heatStyle"><option value="smooth">平滑热区</option><option value="blocks">原始色块</option></select><label for="heatAlpha">透明度</label><input id="heatAlpha" type="range" min="0" max="1" step="0.05" value="0.55"><label><input id="heatGrid" type="checkbox">显示 patch 网格</label><p class="note">取自交叉注意力的 softmax(QKᵀ/8)，位于乘 V 之前。每种 query 单独显示，不求均值。当前 4×7 网格对应 16×16 像素块，覆盖完整 112×64 图像；平滑仅改变显示。颜色表示权重大小，不能当作精确的边缘轮廓。</p></details><p class="note">当前模型：<span id="modelName">加载中</span><br><span id="modelInput"></span><br><span id="terrainDetails">每级踏面 30 cm · 上楼 6 级</span><br>画面与机器人动作均来自实时物理仿真。</p></div></aside></main><footer>本地运行 · 无外部网页依赖 · 导出策略 + 视觉编码器 + 在线参考规划器</footer>
+<script src="/heatmap.js"></script>
+<script>
+let state={},drag=null,ready=false,selectionInitialized=false,commandChain=Promise.resolve();
+const $=id=>document.getElementById(id),speed=()=>Number($('speed').value);
+const keyboard=new Set(),pointers=new Map(),driveKeys=new Set(['KeyW','KeyS','KeyQ','KeyE']);
+const pressed=()=>new Set([...keyboard,...pointers.values()]);
+function control(action,extra={}){
+  const body=JSON.stringify({action,speed:speed(),...extra});
+  commandChain=commandChain.then(async()=>{
+    const r=await fetch('/api/control',{method:'POST',headers:{'Content-Type':'application/json'},body});
+    if(!r.ok)throw Error(await r.text());
+  }).catch(e=>{$('error').textContent=e.message});
+  return commandChain;
+}
+function refreshKeys(){
+  const keys=pressed();
+  document.querySelectorAll('[data-key]').forEach(b=>b.classList.toggle('active',keys.has(b.dataset.key)));
+  return keys;
+}
+function drive(){
+  const keys=refreshKeys();
+  if(!ready)return;
+  const forward=Number(keys.has('KeyW'))-Number(keys.has('KeyS'));
+  const turn=Number(keys.has('KeyQ'))-Number(keys.has('KeyE'));
+  control(forward||turn?'drive':'stop',{forward,turn});
+}
+function clearKeys(stop=false){
+  const had=pressed().size>0;
+  keyboard.clear();pointers.clear();refreshKeys();
+  if(stop&&had&&ready)control('stop');
+}
+$('speed').oninput=()=>{$('speedText').textContent=speed().toFixed(2)+' m/s';if(pressed().size)drive()};
+$('reset').onclick=()=>{clearKeys();control('reset',{kind:$('terrain').value,height:Number($('stepHeight').value),count:Number($('stepCount').value),tread:0.30})};
+$('auto').onclick=()=>{clearKeys();control('auto')};
+$('stop').onclick=()=>{clearKeys();control('stop')};
+$('pause').onclick=()=>{clearKeys();control(state.running?'pause':'resume')};
+document.querySelectorAll('[data-key]').forEach(b=>{
+  b.onpointerdown=e=>{if(!ready)return;e.preventDefault();b.setPointerCapture(e.pointerId);pointers.set(e.pointerId,b.dataset.key);drive()};
+  b.oncontextmenu=e=>e.preventDefault();
+  const release=e=>{if(pointers.delete(e.pointerId))drive()};
+  b.onpointerup=release;b.onpointercancel=release;b.onlostpointercapture=release;
+});
+window.addEventListener('keydown',e=>{
+  if(['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)||e.ctrlKey||e.metaKey||e.altKey)return;
+  if(driveKeys.has(e.code)){
+    e.preventDefault();if(!ready||keyboard.has(e.code))return;keyboard.add(e.code);drive();
+  }
+  if(e.code==='Space'&&!e.repeat){e.preventDefault();clearKeys();control(state.running?'pause':'resume')}
+});
+window.addEventListener('keyup',e=>{if(keyboard.delete(e.code)){e.preventDefault();drive()}});
+window.addEventListener('blur',()=>clearKeys(true));
+document.addEventListener('visibilitychange',()=>{if(document.hidden)clearKeys(true)});
+setInterval(()=>{if(pressed().size&&ready)control('heartbeat')},150);
+$('scene').onpointerdown=e=>{drag={x:e.clientX,y:e.clientY,az:state.camera?.azimuth||125,el:state.camera?.elevation||-18};$('scene').setPointerCapture(e.pointerId)};
+$('scene').onpointermove=e=>{if(drag)control('camera',{azimuth:drag.az+(e.clientX-drag.x)*.4,elevation:drag.el-(e.clientY-drag.y)*.3})};$('scene').onpointerup=()=>{drag=null};$('scene').onwheel=e=>{e.preventDefault();control('camera',{distance:(state.camera?.distance||5.8)+Math.sign(e.deltaY)*.4})};
+let visionFrame=null,visionImage=null,visionRevision=0;
+const queryNames=['task_cmd','proprio','CLS'];
+function renderVision(){
+ if(!visionFrame||!visionImage)return;
+ const options={style:$('heatStyle').value,scale:$('heatScale').value,alpha:Number($('heatAlpha').value),grid:$('heatGrid').checked};
+ const selected=Number($('heatQuery').value);
+ const result=VibeHeatmap.draw($('liveHeat'),visionImage,visionFrame,{...options,choice:String(selected)});
+ $('heatTitle').textContent='交叉注意力 · '+queryNames[selected];
+ $('heatMax').textContent=result.available?result.high.toPrecision(3)+' 权重':'1.00 权重';
+ for(let i=0;i<3;i++){
+  const canvas=$('queryHeat'+i),r=VibeHeatmap.draw(canvas,visionImage,visionFrame,{...options,choice:String(i)});
+  canvas.dataset.sourceStep=visionFrame.source_step??'';
+  if(r.available){
+   const row=Math.floor(r.peakIndex/r.cols)+1,col=r.peakIndex%r.cols+1;
+   const sum=visionFrame.attention[i].reduce((a,b)=>a+b,0);
+   $('queryInfo'+i).textContent=`最大权重 ${r.peak.toPrecision(3)} · 第 ${row} 行、第 ${col} 列 · 权重和 ${sum.toFixed(3)} · 色标 0～${r.high.toPrecision(3)}`;
+  }else $('queryInfo'+i).textContent='开始行走或自动测试后显示';
+ }
+ $('liveHeat').dataset.sourceStep=visionFrame.source_step??'';
+ $('attentionLegend').textContent=options.scale==='absolute'?'色标：权重 0～1，三张图和不同帧使用相同范围。':'色标：每张图按自身最大权重着色；跨图比较请查看数值。';
+ const stamp=visionFrame.source_step===null?'等待策略取样':`同帧图像与注意力 · ${visionFrame.time.toFixed(2)} s · 第 ${visionFrame.source_step} 步`;
+ $('heatTime').textContent=stamp;$('attentionTime').textContent=stamp;
+ $('visionStatus').textContent=result.available?`${stamp}。原始 ${result.rows}×${result.cols} 个 patch，三张图分别对应任务指令、本体状态和视觉 CLS。`:'点击自动测试或开始行走后显示注意力。';
+}
+for(const id of ['heatQuery','heatStyle','heatScale','heatAlpha','heatGrid'])$(id).oninput=renderVision;
+async function pollVision(){
+ try{
+  const packet=await(await fetch('/api/vision',{cache:'no-store'})).json();
+  if(packet.image&&(packet.image!==visionFrame?.image||packet.source_step!==visionFrame?.source_step)){
+   const version=++visionRevision,image=new Image();image.onload=()=>{if(version!==visionRevision)return;visionFrame=packet;visionImage=image;$('rgb').src=packet.image;renderVision();};image.src=packet.image;
+  }
+ }catch(e){$('visionStatus').textContent='等待图像与注意力连接…';}
+ setTimeout(pollVision,100);
+}
+pollVision();
+async function poll(){try{state=await(await fetch('/api/state',{cache:'no-store'})).json();ready=state.ready;$('connection').textContent=ready?'本地仿真已连接':'模型加载中…';document.querySelectorAll('button').forEach(b=>b.disabled=!ready);if(state.error)$('error').textContent=state.error;if(ready){if(!selectionInitialized){$('terrain').value=state.terrain.kind;$('stepHeight').value=state.terrain.height.toFixed(2);$('stepCount').value=String(state.terrain.n);selectionInitialized=true;}const names={up:'上楼梯',down:'下楼梯',up_down:'上楼 → 平台 → 下楼',flat:'平地'},tile=state.terrain;const cm=(100*tile.height).toFixed(0);$('progressTitle').textContent=tile.kind==='flat'?'平地':`${names[tile.kind]} · ${cm} cm × ${tile.n} 级${tile.kind==='up_down'?' / 每侧':''}`;$('terrainDetails').textContent=tile.kind==='flat'?'当前场景为平地':`每级踏面 ${(100*tile.tread).toFixed(0)} cm · 每级高 ${cm} cm · ${tile.n} 级${tile.kind==='up_down'?' / 每侧':''}`;$('modelName').textContent=(state.model?.family||'')+' / '+(state.model?.checkpoint||'');$('modelInput').textContent=state.model?`RGB ${state.model.image_shape[1]}×${state.model.image_shape[0]} · ${state.model.patch_shape[0]} 个视觉 token`:'';$('time').textContent=state.t.toFixed(1)+' s';$('distance').textContent=state.position[0].toFixed(2)+' m';$('velocity').textContent=(state.actual_forward_speed??state.actual_vx).toFixed(2)+' m/s';$('height').textContent=state.position[2].toFixed(2)+' m';$('mode').textContent=state.fall?'机器人跌倒 · 请重置':state.validation?(state.validation.passed?'测试通过 · 已停步':'测试未通过 · 查看记录'):state.reached?'已越过楼梯终点':state.running?(state.auto?'自动测试中':state.walking?[(state.forward>0?'前进':state.forward<0?'后退':''),(state.turn>0?'左转':state.turn<0?'右转':'')].filter(Boolean).join(' + ')+'中':'站立 / 停步中'):'已暂停';$('heading').textContent='机器人朝向 '+((state.yaw??0)*180/Math.PI).toFixed(0)+'°';$('pause').textContent=state.running?'暂停':'继续';$('bar').style.width=Math.min(100,Math.max(0,state.position[0]/state.goal*100))+'%';$('progressText').textContent=state.fall?'本次测试失败：机器人跌倒。重置后可重新测试。':state.validation?(state.validation.passed?'测试通过：完整通过台阶，并停步观察 4 秒。':'本次验证未通过，请查看 records 中的完整记录。'):state.reached?'双脚已越过终点，正在观察停步。':'终点 '+state.goal.toFixed(2)+' m · 骨盆离地 '+state.clearance.toFixed(2)+' m';$('scene').src='/frame.jpg?t='+Date.now();}}catch(e){$('connection').textContent='连接中断';}setTimeout(poll,100)}poll();
+</script></html>

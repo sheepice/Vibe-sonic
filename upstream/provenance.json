@@ -1,0 +1,10 @@
+{
+  "remote_project": "/mnt/workspace/wjw/GRAIL/vibe_grail_joint",
+  "robot_source": ".venv/lib/python3.11/site-packages/mjlab/asset_zoo/robots/unitree_g1/",
+  "robot_profile": "vendor/mocke/src/mocke/sonic/profile.py: robot_cfg (hip pitch uses 7520_22)",
+  "sample_source": "/mnt/workspace/wjw/MimicLite-workspace/runs/datasets/grail_stair_p1_5cm/terrains/00633304c826b0be3967089b.npz",
+  "sample_sha256": "b990320e80ecca8e98ea6bcb94a0201df0f0b0b65f448de75ef2a5461d37d092",
+  "inference": "Unmodified ONNX weights. Copied deploy observations/reference; runtime hash helper made self-contained.",
+  "terrain": "Box stairs following upstream velocity/terrain.py; runtime has no motion dataset dependency.",
+  "directional_extension": "Local reference.py and observations.py now accept signed speed and desired heading/yaw rate for W/S/Q/E. Original forward trajectory and model bytes verified unchanged; see records/directional_controls/audit.json."
+}

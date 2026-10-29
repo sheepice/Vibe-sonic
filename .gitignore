@@ -1,0 +1,31 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+
+# ---- 模型权重（体积过大，不入库；bundle 目录中的 JSON 清单保留，权重另行分发后放入即可运行）----
+models/**/*.onnx
+models/**/*.pt
+models/**/*.pth
+models/**/*.safetensors
+
+# ---- 运行数据与测试记录（轨迹 JSON / npz / 录像，仅保留在本地）----
+records/
+
+# ---- 本地参考用的第三方独立仓库（自带 .git，不应嵌套提交）----
+GeoLoco/
+
+# ---- 根目录临时分析产物与大体积文件 ----
+/*.mp4
+/*.pdf
+/*.png
+/*.jpg
+/,
+
+# ---- 编辑器与系统文件 ----
+.DS_Store
+*.swp
+.idea/
+.vscode/

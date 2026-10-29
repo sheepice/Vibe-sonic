@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>G1 图像与注意力回放</title>
+<style>
+body{font:16px system-ui,sans-serif;margin:24px auto;padding:0 20px;max-width:1500px;color:#e6eaf2;background:#121923}h1{font-size:24px}p{line-height:1.6;color:#b8c3d3}.toolbar{display:flex;gap:16px;align-items:center;flex-wrap:wrap;background:#1d2939;padding:16px;border-radius:12px}button,select{font:inherit;padding:8px;background:#283a50;color:white;border:1px solid #627389;border-radius:6px}input[type=range]{flex:1;min-width:150px}.panels{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:18px}.panel{background:#1d2939;border-radius:12px;padding:12px}.panel h2{font-size:17px;margin-top:0}.screen{width:100%;aspect-ratio:7/4;background:#080c12;object-fit:contain;image-rendering:pixelated}.raw,#heat{image-rendering:auto}#status{white-space:pre-wrap;line-height:1.7}#warning{color:#ffca80}.legend{height:10px;background:linear-gradient(90deg,rgb(22,26,90),rgb(22,95,220),rgb(22,211,192),rgb(255,231,60),rgb(240,45,35));margin:10px 0 4px;border-radius:4px}.legendLabels{display:flex;justify-content:space-between;color:#b8c3d3;font-size:12px}.small{font-size:13px}.note{padding:14px;border-left:3px solid #dba04d}.missing{color:#ffca80;min-height:22px}@media(max-width:900px){.panels{grid-template-columns:1fr}}
+</style>
+<h1>G1 图像与注意力回放</h1>
+<p>同一源帧的相机图像、策略输入与蓝—青—黄—红热区叠加。使用模型实际记录的权重，可切换平滑显示和原始网格。</p>
+<div class="toolbar"><button id="play">播放</button><button id="prev">上一帧</button><button id="next">下一帧</button><input id="seek" type="range" min="0" value="0"><span id="clock"></span></div>
+<div class="toolbar" style="margin-top:12px">
+<label>数据 <select id="map"><option value="mean">三组注意力均值</option><option value="0">任务指令 q_task_cmd</option><option value="1">本体状态 q_proprio</option><option value="2">视觉 CLS q_cls</option><option value="feature">编码器特征 L2 幅值</option></select></label>
+<label>显示 <select id="style"><option value="smooth">平滑热区</option><option value="blocks">原始色块</option></select></label>
+<label>色标 <select id="scale"><option value="relative">本帧范围</option><option value="absolute">注意力固定 0～1</option></select></label>
+<label>透明度 <input id="alpha" type="range" min="0" max="1" value="0.55" step="0.05"></label><label><input id="grid" type="checkbox">patch 网格</label><label><input id="edges" type="checkbox">图像梯度边缘</label></div>
+<div class="panels"><div class="panel"><h2>原始彩色图像（预览缩小）</h2><img id="raw" class="screen raw"><div id="rawMissing" class="missing small"></div></div><div class="panel"><h2>策略实际输入</h2><img id="policy" class="screen"><div id="policyMissing" class="missing small"></div></div><div class="panel"><h2>同帧热区叠加</h2><canvas id="heat" class="screen" width="672" height="384"></canvas><div class="legend"></div><div class="legendLabels"><span>低</span><span>高</span></div><p id="range" class="small"></p></div></div>
+<p id="warning"></p><div id="status" class="panel"></div>
+<p class="note">平滑是对原始 patch 数值做双线性插值后的显示效果，不增加模型分辨率。RGB64 原始网格为 4×7；三层空间模块混合过信息，热区不能单独证明识别了台阶边缘。特征 L2 表示幅值；图像梯度不是台阶标注。默认按本帧范围着色，跨帧比较注意力强度可选固定 0～1。bag 中的 image_raw 保留原始像素，左侧 JPEG 仅用于快速预览。</p>
+<script>__VIBE_HEATMAP_JS__</script>
+<script>
+const DATA=__VIBE_DATA__;const $=id=>document.getElementById(id);let current=Math.max(0,DATA.frames.findIndex(f=>f.attention)),timer=null,revision=0;
+$('seek').max=DATA.frames.length-1;
+function picture(id,path){$(id).style.visibility=path?'visible':'hidden';if(path)$(id).src=path;else $(id).removeAttribute('src');}
+function render(){
+  const version=++revision,f=DATA.frames[current],s=f.step;
+  $('seek').value=current;$('clock').textContent=`${f.time.toFixed(2)} s · ${current+1}/${DATA.frames.length}`;
+  picture('raw',f.raw);picture('policy',f.policy);$('rawMissing').textContent=f.raw?'':'该步骤没有同源 raw 记录';$('policyMissing').textContent=f.policy?'':'缺少源图像，无法对齐';
+  $('status').textContent=`阶段：${s.compute?'策略推理':'等待／初始化'}   图像帧：${s.image_frame_id}   策略步：${s.step_id}\n速度：${s.speed.toFixed(3)} m/s   转向：${s.yaw_rate.toFixed(3)} rad/s   输入图像年龄：${((s.inference_at-s.image_at)*1000).toFixed(1)} ms\n模型：${DATA.metadata.manifest?.training_iteration ?? ''}   原图采样：${DATA.metadata.raw_hz ?? '?'} Hz`;
+  const status=DATA.recording_status||{},counts=status.counters||{};
+  const dropped=Object.entries(counts).filter(([k,v])=>k.endsWith('_dropped')&&v).map(([k,v])=>`${k}=${v}`).join('，');
+  $('warning').textContent=[DATA.truncated?'预览已截断':'',DATA.missing_policy_images?`缺少 ${DATA.missing_policy_images} 张策略图像`:'',dropped?`录制丢帧：${dropped}`:'',status.error?'录制有错误，请查看 recording_status.json':'',status.limit_reached?'已到录制容量上限，后续时段未录制':'',Object.values(status.queued_not_written||{}).some(v=>v>0)?'存在已入队但未写入的记录，请查看 recording_status.json':''].filter(Boolean).join('；');
+  const canvas=$('heat'),ctx=canvas.getContext('2d');ctx.clearRect(0,0,canvas.width,canvas.height);$('range').textContent='';if(!f.policy)return;
+  const image=new Image();image.onload=()=>{
+    if(version!==revision)return;canvas.width=f.width*6;canvas.height=f.height*6;
+    const result=VibeHeatmap.draw(canvas,image,f,{choice:$('map').value,style:$('style').value,scale:$('scale').value,alpha:Number($('alpha').value),grid:$('grid').checked});
+    $('range').textContent=result.available?VibeHeatmap.describe(result):(s.compute?'该步骤缺少所选数据':'尚未启动策略；可切换查看特征幅值');
+    if($('edges').checked&&f.edges){const edge=new Image();edge.onload=()=>{if(version===revision)ctx.drawImage(edge,0,0,canvas.width,canvas.height);};edge.src=f.edges;}
+  };image.src=f.policy;
+}
+function stop(){clearTimeout(timer);timer=null;$('play').textContent='播放';}
+function advance(){if(current>=DATA.frames.length-1){stop();return;}const delay=Math.max(20,(DATA.frames[current+1].time-DATA.frames[current].time)*1000);timer=setTimeout(()=>{current++;render();advance();},delay);}
+$('play').onclick=()=>{if(timer)stop();else{$('play').textContent='暂停';advance();}};
+$('prev').onclick=()=>{stop();current=Math.max(0,current-1);render();};$('next').onclick=()=>{stop();current=Math.min(DATA.frames.length-1,current+1);render();};
+$('seek').oninput=()=>{stop();current=Number($('seek').value);render();};for(const id of ['map','alpha','style','scale','grid','edges'])$(id).oninput=render;render();
+</script></html>

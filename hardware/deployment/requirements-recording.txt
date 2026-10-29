@@ -1,0 +1,2 @@
+# File-only ROS 2 bag writer/reader; no ROS daemon or DDS publisher.
+rosbags==0.11.9

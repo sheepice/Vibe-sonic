@@ -1,0 +1,57 @@
+{
+  "copied_at": "2026-10-28T12:20:18.522657+00:00",
+  "server": "wjw",
+  "run": "/mnt/workspace/wjw/GRAIL/vibe_grail_joint/runs/vggt_stairs_hierarchical_rgb64_20261027",
+  "checkpoint": "model_2400.pt",
+  "checkpoint_sha256": "e7728d6b81824ab38091dc91055e504e0dd1ade99a2260a112007d155ab30a9d",
+  "latest_at_inspection": true,
+  "training_was_running": true,
+  "export_directory": "/mnt/workspace/wjw/GRAIL/vibe_grail_joint/exports/local_rgb64_hierarchical2400_20261028",
+  "changes": {
+    "rgb_hwc": {
+      "previous": [
+        63,
+        112,
+        3
+      ],
+      "current": [
+        64,
+        112,
+        3
+      ]
+    },
+    "patch_tokens": {
+      "previous": 21,
+      "current": 28
+    },
+    "spatial_blocks": 3,
+    "variant": "hierarchical",
+    "robot_contract_changed": false,
+    "planner_changed": false,
+    "velocity_command_shape": [
+      1,
+      8
+    ],
+    "teacher_required_at_inference": false,
+    "depth_input": false
+  },
+  "parity": {
+    "policy_parity": {
+      "cases": 64,
+      "maximum_absolute_error": 3.4570693969726562e-06,
+      "tolerance": 1e-05
+    },
+    "encoder_parity": {
+      "cases": 16,
+      "maximum_absolute_error": 8.702278137207031e-06,
+      "tolerance": 0.0001
+    },
+    "rgb_to_action_parity": {
+      "cases": 16,
+      "maximum_absolute_error": 5.960464477539062e-07,
+      "tolerance": 1e-05
+    }
+  },
+  "local_checkpoint_verified": true,
+  "source_archive_sha256": "dfd448ec6012773214ba5745717edfaa2f7bc6dd9b7716026d7de094d8962001"
+}
